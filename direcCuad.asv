@@ -5,13 +5,13 @@ function f=direcCuad(x)
     % mais se adequa à geometria ackermann e também que fornece o maior
     % ângulo de esterçamento possível
     %
-    % Valores de input: Vetor com parâmetros de ajuste 
+    % Valores de input: Vetor com b da iteração e c da iteração
     %
     % Valores de Output: f (Vetor com os parâmetros otimizados)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    b=60; % Tamanho dos sides arms 
-    c=965; % distância entre os pontos de fixação do steering arm com os ties rods 
+    b=x(1); % Tamanho dos sides arms 
+    c=x(2); % distância entre os pontos de fixação do steering arm com os ties rods 
     
     % Constantes
     L=1550; % Entre-eixos
@@ -20,7 +20,7 @@ function f=direcCuad(x)
     bit= 1150; % Tamanho da bitola menor
     
     % Raio mínimo 
-    Rmin=2.187; 
+    Rmin=2187.5; 
     
     % Número de passos 
     n=50; 
@@ -30,14 +30,14 @@ function f=direcCuad(x)
         % Ângulo interno máximo de esterçamento de acordo com o raio mínimo
         angIMax=atan(L/Rmin)*57.2958
 
-        % alfa: ângulo entre steering arm e "a"
+        % alfa: ângulo entre o side arm e "a"
         alfa=acos((a-c)/(2*b))*57.2958;
-        steeringArmAgle=90-alfa; 
+        sideArmAngle=90-alfa; 
 
     % Máximo ângulo que a roda pode esterçar 
         beta=acos((b^2-a^2-(b+c)^2)/(-2*a*(b+c)))*57.2958; 
         if 0<beta
-            angIMaxMec=alfa-beta
+            angIMaxMec=alfa-beta;
         else
             angIMaxMec=angIMax;
         end 
@@ -50,6 +50,7 @@ function f=direcCuad(x)
     angI=zeros(1,n+1);
     angEMec=zeros(1, n+1);
     angEAck=zeros(1, n+1);
+    relation
 
     for cont=2:n+1
         % Cálculo do ângulo interno
@@ -74,11 +75,12 @@ function f=direcCuad(x)
     
     % Definição dos objetivos minimizadores 
     % Primeiro objetivo: quanto mais o mecanismo esterçar, melhor
-    f(1)=angIMax-angIMaxMec; 
+    f(1, 1)=angIMax-angIMaxMec; 
 
     % Segundo objetivo: melhor aproximação possível da relação de ackermann
-    f(2)=sqrt(sum((angEAck-angEMec)^2));
+    f(1, 2)=sqrt(sum((angEAck-angEMec).^2));
     
-    else % Caso o mecanismo não possa ser constru
+    else % Caso o mecanismo não possa ser construído 
+        f=[];
     end
 end

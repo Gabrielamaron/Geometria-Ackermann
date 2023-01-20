@@ -1,3 +1,4 @@
+
 function f=direcCuad(x) 
 
     % Função que irá calcular os dois objetivos do quadrilátero de direção
@@ -5,22 +6,22 @@ function f=direcCuad(x)
     % mais se adequa à geometria ackermann e também que fornece o maior
     % ângulo de esterçamento possível
     %
-    % Valores de input: Vetor com parâmetros de ajuste 
+    % Valores de input: Vetor com b da iteração e c da iteração
     %
     % Valores de Output: f (Vetor com os parâmetros otimizados)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    b=60; % Tamanho dos sides arms 
-    c=965; % distância entre os pontos de fixação do steering arm com os ties rods 
+    b=x(1); % Tamanho dos sides arms 
+    c=x(2); % distância entre os pontos de fixação do steering arm com os ties rods 
     
     % Constantes
     L=1550; % Entre-eixos
     a=1053.6; % Distância entre os eixos de pivotação
-    pctAck= 84; % Porcentagem de ackermann
+    pctAck= 79; % Porcentagem de ackermann
     bit= 1150; % Tamanho da bitola menor
     
     % Raio mínimo 
-    Rmin=2.187; 
+    Rmin=2187.5; 
     
     % Número de passos 
     n=50; 
@@ -28,16 +29,16 @@ function f=direcCuad(x)
     % Certificação de que o mecanismo pode ser construído
     if a-2*b<c
         % Ângulo interno máximo de esterçamento de acordo com o raio mínimo
-        angIMax=atan(L/Rmin)*57.2958
+        angIMax=atan(L/Rmin)*57.2958;
 
-        % alfa: ângulo entre steering arm e "a"
+        % alfa: ângulo entre o side arm e "a"
         alfa=acos((a-c)/(2*b))*57.2958;
-        steeringArmAgle=90-alfa; 
+        sideArmAngle=90-alfa; 
 
     % Máximo ângulo que a roda pode esterçar 
         beta=acos((b^2-a^2-(b+c)^2)/(-2*a*(b+c)))*57.2958; 
         if 0<beta
-            angIMaxMec=alfa-beta
+            angIMaxMec=alfa-beta;
         else
             angIMaxMec=angIMax;
         end 
@@ -56,28 +57,32 @@ function f=direcCuad(x)
         angI(cont)=(angMin/n)*(cont-1); 
     
         % Cálculo do ângulo externo do ackermann
-        angEAck(cont)=angI(cont)*(1-(pctAck/100))+(pctAck/100)*atan(1/(bit/L+1/tan(angI(cont)))); 
+        angEAck(cont)=(angI(cont)*(1-(pctAck/100))+(pctAck/100)*atan(1/(bit/L+1/tan(angI(cont)/57.2958)))*57.2958); 
 
         % Cálculo do ângulo externo fornecido pelo mecanismo
         % tamanho da diagonal "g" de acordo com o teorema do cosseno
-        g=sqrt(a^2+b^2-2*a*b*cos(alfa-angI(cont)));
+        g=sqrt(a^2+b^2-2*a*b*cos((alfa-angI(cont))/57.2958));
 
         % Ângulo formado de g com o interior do side arm 
-        gamma=acos((b^2-a^2-g^2)/(-2*a*g)); 
+        gamma=acos((b^2-a^2-g^2)/(-2*a*g))*57.2958; 
 
         % Ângulo formado por g e o exterior do side arm
-        omega=acos((c^2-g^2-b^2)/(-2*g*b));
+        omega=acos((c^2-g^2-b^2)/(-2*g*b))*57.2958;
 
         % Ângulo esterçado pela roda externa
         angEMec(cont)=gamma+omega-alfa;
     end
+
     
     % Definição dos objetivos minimizadores 
     % Primeiro objetivo: quanto mais o mecanismo esterçar, melhor
-    f(1)=angIMax-angIMaxMec; 
+    f(1, 1)=angIMax-angIMaxMec; 
 
     % Segundo objetivo: melhor aproximação possível da relação de ackermann
-    f(2)=sqrt(sum((angEAck-angEMec)^2));
+    f(1, 2)=sqrt(sum((angEAck-angEMec).^2));
+
+    % ângulo do steering arm 
+    f(1, 3)=sideArmAngle;
     
     else % Caso o mecanismo não possa ser construído 
         f=[];

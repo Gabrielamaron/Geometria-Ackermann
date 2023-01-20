@@ -1,0 +1,4 @@
+function table=ackQuad(p) 
+% função maior em que serão recebidos os parâmetros p de tamanhos mínimos e
+% máximos do side arm "b"e do conection arm "c"
+
